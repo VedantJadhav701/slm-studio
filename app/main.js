@@ -8,6 +8,7 @@ const { resolvePython, runCli } = require('./lib/python');
 const { getStatus, normaliseBaseUrl } = require('./lib/ollama');
 const { validateSelection } = require('./lib/files');
 const { streamChat, indexDocuments, queryRag, evaluateRag } = require('./lib/chat');
+const { startTraining, cancelTraining, getLatestStep } = require('./lib/train');
 const settingsStore = require('./lib/settings');
 
 // Window and dock icon. Installers get their icons from package.json (build.*.icon).
@@ -254,6 +255,44 @@ function registerIpc() {
         },
       });
     });
+  }));
+
+  ipcMain.handle('train:start', wrap(async (options) => {
+    const settings = settingsStore.load(settingsFile, projectsDefault);
+    const outDir = options?.outDir || path.join(settings.projectsDir, 'latest-training');
+    const trainFile = options?.trainFile || path.join(settings.projectsDir, 'train.jsonl');
+    const evalFile = options?.evalFile || path.join(settings.projectsDir, 'eval.jsonl');
+    const interpreter = await getPython();
+
+    const payload = await startTraining({
+      interpreter,
+      coreDir: CORE_DIR,
+      trainFile,
+      evalFile,
+      outDir,
+      model: options?.model || 'llama3.2:1b',
+      lr: options?.lr || 0.0002,
+      epochs: options?.epochs || 3,
+      batchSize: options?.batchSize || 2,
+      loraR: options?.loraR || 16,
+      quantization: options?.quantization || '4bit',
+      dryRun: Boolean(options?.dryRun),
+    });
+    if (!payload.ok) throw new Error(payload.error);
+    return payload;
+  }));
+
+  ipcMain.handle('train:status', wrap(async (jobDir) => {
+    const settings = settingsStore.load(settingsFile, projectsDefault);
+    const targetDir = jobDir || path.join(settings.projectsDir, 'latest-training');
+    return getLatestStep(targetDir);
+  }));
+
+  ipcMain.handle('train:cancel', wrap(async (jobDir) => {
+    const settings = settingsStore.load(settingsFile, projectsDefault);
+    const targetDir = jobDir || path.join(settings.projectsDir, 'latest-training');
+    const interpreter = await getPython();
+    return cancelTraining({ interpreter, coreDir: CORE_DIR, jobDir: targetDir });
   }));
 }
 
