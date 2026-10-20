@@ -12,7 +12,18 @@
 <body>
   <div id="app" class="app">
     <header class="navbar" id="navbar">
-      <div class="navbar-title"><img class="app-mark" src="assets/mark.svg" alt="" width="20" height="20" /><span id="nav-title">Goal</span></div>
+      <div class="navbar-left">
+        <div class="navbar-title">
+          <img class="app-mark" src="assets/mark.svg" alt="" width="22" height="22" />
+          <span id="nav-title">Goal</span>
+        </div>
+      </div>
+      <div class="navbar-right">
+        <div class="status-chip" id="system-status-chip">
+          <span class="status-dot" id="system-status-dot"></span>
+          <span id="system-status-text">Local Core Ready</span>
+        </div>
+      </div>
     </header>
     <main class="content" id="content" tabindex="-1"></main>
     <nav class="tabbar" id="tabbar" role="tablist" aria-label="Sections"></nav>

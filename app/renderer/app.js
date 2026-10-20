@@ -56,17 +56,29 @@
     return node;
   }
 
-  function svgIcon(d) {
+  function svgIcon(d, extraClass) {
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('class', 'icon');
+    svg.setAttribute('class', extraClass ? `icon ${extraClass}` : 'icon');
     const path = document.createElementNS(ns, 'path');
     path.setAttribute('d', d);
     path.setAttribute('fill', 'currentColor');
     svg.append(path);
     return svg;
+  }
+
+  /** Creates an icon badge with a gradient background for goal/feature cards */
+  function iconBadge(d, colorClass) {
+    return el('div', { class: `icon-badge ${colorClass || 'badge-blue'}` }, svgIcon(d));
+  }
+
+  /** File extension → format tag label */
+  function formatTag(name) {
+    const ext = (name || '').split('.').pop().toUpperCase();
+    const map = { JSON: 'JSON', JSONL: 'JSONL', CSV: 'CSV', TSV: 'TSV', TXT: 'TXT', MD: 'MD' };
+    return map[ext] || 'FILE';
   }
 
   function toast(message, kind) {
@@ -87,6 +99,20 @@
     } else {
       button.textContent = button.dataset.label || button.textContent;
       button.disabled = false;
+    }
+  }
+
+  /** Update the header status chip to reflect Ollama / system state */
+  function updateStatusChip(online) {
+    const dot = document.getElementById('system-status-dot');
+    const text = document.getElementById('system-status-text');
+    if (!dot || !text) return;
+    if (online) {
+      dot.className = 'status-dot status-dot-online';
+      text.textContent = 'Ollama Online';
+    } else {
+      dot.className = 'status-dot status-dot-offline';
+      text.textContent = 'Ollama Offline';
     }
   }
 
@@ -156,20 +182,44 @@
 
   // ---------- Goals ----------
 
+  /** Icon paths for each goal type */
+  const GOAL_ICONS = {
+    qa: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z',
+    summarise: 'M4 4h16v2H4zM4 8h12v2H4zM4 12h16v2H4zM4 16h8v2H4z',
+    classify: 'M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z',
+    extract: 'M14 2H6c-1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
+    draft: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+  };
+
+  /** Badge color for each goal type */
+  const GOAL_COLORS = {
+    qa: 'badge-blue',
+    summarise: 'badge-purple',
+    classify: 'badge-orange',
+    extract: 'badge-green',
+    draft: 'badge-teal',
+  };
+
   function viewGoals() {
-    const rows = Object.entries(GOALS).map(([id, g]) => {
+    const goalEntries = Object.entries(GOALS);
+    const rows = goalEntries.map(([id, g]) => {
       const selected = state.settings.goal === id;
+      const iconPath = GOAL_ICONS[id] || GOAL_ICONS.qa;
+      const badgeColor = GOAL_COLORS[id] || 'badge-blue';
       return el('button', {
-        class: 'row row-button' + (selected ? ' row-selected' : ''),
+        class: 'goal-card' + (selected ? ' goal-card-active' : ''),
         type: 'button',
         role: 'radio',
         'aria-checked': selected ? 'true' : 'false',
         onclick: () => chooseGoal(id),
       },
+        iconBadge(iconPath, badgeColor),
         el('div', { class: 'row-stack' },
           el('span', { class: 'row-title', text: g.title }),
           el('span', { class: 'row-detail', text: g.subtitle })),
-        selected ? svgIcon('M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.5z') : null);
+        selected
+          ? svgIcon('M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.5z', 'check-icon')
+          : el('span', { class: 'chevron', text: '›' }));
     });
     const current = GOALS[state.settings.goal];
     return el('div', { class: 'page' },
@@ -209,11 +259,12 @@
       el('p', { class: 'dropzone-hint', text: 'JSON, JSONL, CSV, TSV, TXT or Markdown. Up to 512 MB per file.' }),
       button('Choose files…', onChooseFiles, 'tinted'));
 
-    const fileRows = state.files.map((f) => el('div', { class: 'row' },
+    const fileRows = state.files.map((f) => el('div', { class: 'file-item' },
       el('div', { class: 'row-stack' },
         el('span', { class: 'row-title', text: f.name }),
         el('span', { class: 'row-detail', text: formatBytes(f.size) })),
-      el('button', { class: 'btn btn-plain btn-danger', type: 'button', onclick: () => removeFile(f.path) }, 'Remove')));
+      el('span', { class: 'format-tag', text: formatTag(f.name) }),
+      el('button', { class: 'btn btn-plain btn-danger', type: 'button', onclick: () => removeFile(f.path) }, '✕')));
 
     const rejectedNotice = state.rejected.length
       ? el('div', { class: 'notice notice-error' },
@@ -388,9 +439,17 @@
       onkeydown: (e) => { if (e.key === 'Enter') onSendChat(); },
     });
 
+    const sendBtn = el('button', {
+      class: 'chat-send-btn',
+      type: 'button',
+      disabled: state.chatSending,
+      onclick: () => onSendChat(inputField),
+      'aria-label': 'Send',
+    }, svgIcon('M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'));
+
     const inputBar = el('div', { class: 'chat-input-bar' },
       inputField,
-      button('Send', () => onSendChat(inputField), 'filled', state.chatSending)
+      sendBtn
     );
 
     const evalRows = [];
@@ -637,6 +696,7 @@
     else { state.hardware = null; state.hardwareError = tasks[0].reason.message; }
     state.ollama = tasks[1].status === 'fulfilled' ? tasks[1].value : { running: false, models: [], error: tasks[1].reason.message };
     state.python = tasks[2].status === 'fulfilled' ? tasks[2].value : { found: false };
+    updateStatusChip(state.ollama && state.ollama.running);
     render();
   }
 
@@ -691,6 +751,19 @@
       toast(err.message, 'error');
     }
   }
+
+  // ---------- Keyboard shortcuts ----------
+
+  document.addEventListener('keydown', (e) => {
+    // Cmd/Ctrl + 1..6 switches tabs
+    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
+      const idx = Number(e.key) - 1;
+      if (idx >= 0 && idx < TABS.length) {
+        e.preventDefault();
+        go(TABS[idx].id);
+      }
+    }
+  });
 
   // ---------- Startup ----------
 
