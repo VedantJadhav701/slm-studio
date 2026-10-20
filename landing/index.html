@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SLM Studio is a free, open-source desktop app that turns your own data into a small language model that runs on your own computers." />
+  <meta name="theme-color" content="#F2F2F7" />
+  <title>SLM Studio — Your data. Your model. Your machine.</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <header class="site-nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top" aria-label="SLM Studio home">
+        <img class="brand-mark" src="assets/mark.svg" alt="" width="28" height="28" />
+        <span>SLM Studio</span>
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#platforms">Platforms</a>
+      </nav>
+      <a class="btn btn-small" href="#download">Download</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <div class="aurora" aria-hidden="true">
+        <span class="blob blob-a"></span>
+        <span class="blob blob-b"></span>
+        <span class="blob blob-c"></span>
+      </div>
+      <div class="hero-grid-bg" aria-hidden="true"></div>
+      <div class="cursor-glow" aria-hidden="true"></div>
+
+      <div class="wrap hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow reveal">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            Free · Open source · Runs on your machine
+          </p>
+          <h1 class="hero-title" aria-label="Your data. Your model. Your machine.">
+            <span class="line" data-split aria-hidden="true">Your data.</span>
+            <span class="line" data-split aria-hidden="true">Your model.</span>
+            <span class="line accent-line" data-split aria-hidden="true">Your machine.</span>
+          </h1>
+          <p class="lede reveal">
+            SLM Studio turns the documents, tickets, and records your team already has into a small
+            language model that answers questions and automates routine work, entirely on your own
+            computers. Nothing is uploaded anywhere.
+          </p>
+          <div class="cta-row reveal">
+            <a class="btn btn-large btn-shine" href="#download">Download for Windows</a>
+            <a class="btn btn-large btn-tinted" href="#download">Download for macOS</a>
+          </div>
+          <p class="fineprint reveal">Release builds are published with the source code. Check the repository for the latest version.</p>
+        </div>
+
+        <div class="hero-visual reveal" aria-hidden="true">
+          <svg class="pipeline" viewBox="0 0 560 320" role="img">
+            <defs>
+              <linearGradient id="flow" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#5AC8FA" />
+                <stop offset="1" stop-color="#007AFF" />
+              </linearGradient>
+              <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="b" />
+                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+
+            <!-- source paths -->
+            <path id="p-json" class="track" d="M120 70 C 200 70, 210 150, 280 160" />
+            <path id="p-csv"  class="track" d="M120 160 C 190 160, 200 160, 280 160" />
+            <path id="p-txt"  class="track" d="M120 250 C 200 250, 210 170, 280 160" />
+            <!-- output path -->
+            <path id="p-out"  class="track track-out" d="M340 160 C 380 160, 400 160, 440 160" />
+
+            <!-- source nodes -->
+            <g class="node" transform="translate(30 48)">
+              <rect width="110" height="44" rx="14" />
+              <text x="55" y="27" text-anchor="middle">JSONL</text>
+            </g>
+            <g class="node" transform="translate(30 138)">
+              <rect width="110" height="44" rx="14" />
+              <text x="55" y="27" text-anchor="middle">CSV</text>
+            </g>
+            <g class="node" transform="translate(30 228)">
+              <rect width="110" height="44" rx="14" />
+              <text x="55" y="27" text-anchor="middle">Markdown</text>
+            </g>
+
+            <!-- core -->
+            <g class="core" transform="translate(280 160)">
+              <circle class="core-ring" r="54" />
+              <circle class="core-disc" r="40" />
+              <text y="6" text-anchor="middle" class="core-label">Validate</text>
+              <text y="22" text-anchor="middle" class="core-sub">Clean · Split</text>
+            </g>
+
+            <!-- model node -->
+            <g class="node node-model" transform="translate(440 124)">
+              <rect width="100" height="72" rx="18" />
+              <text x="50" y="32" text-anchor="middle">Your</text>
+              <text x="50" y="50" text-anchor="middle">model</text>
+            </g>
+
+            <!-- travelling packets -->
+            <circle class="packet" r="6" filter="url(#soft)">
+              <animateMotion dur="2.8s" repeatCount="indefinite" begin="0s"><mpath href="#p-json" /></animateMotion>
+            </circle>
+            <circle class="packet" r="6" filter="url(#soft)">
+              <animateMotion dur="2.8s" repeatCount="indefinite" begin="0.9s"><mpath href="#p-csv" /></animateMotion>
+            </circle>
+            <circle class="packet" r="6" filter="url(#soft)">
+              <animateMotion dur="2.8s" repeatCount="indefinite" begin="1.8s"><mpath href="#p-txt" /></animateMotion>
+            </circle>
+            <circle class="packet packet-out" r="5" filter="url(#soft)">
+              <animateMotion dur="1.6s" repeatCount="indefinite" begin="1.2s"><mpath href="#p-out" /></animateMotion>
+            </circle>
+          </svg>
+
+          <div class="float-card float-a">
+            <span class="float-dot ok"></span>
+            <span>Example: 1,248 rows checked</span>
+          </div>
+          <div class="float-card float-b">
+            <span class="float-dot warn"></span>
+            <span>Example: 37 duplicates removed</span>
+          </div>
+        </div>
+      </div>
+
+      <a class="scroll-cue" href="#formats" aria-label="Scroll to supported formats">
+        <span></span>
+      </a>
+    </section>
+
+    <!-- ============ FORMATS MARQUEE ============ -->
+    <section id="formats" class="marquee" aria-label="Supported formats">
+      <div class="marquee-track">
+        <span>JSON</span><span>JSONL</span><span>CSV</span><span>TSV</span><span>TXT</span><span>Markdown</span>
+        <span>JSON</span><span>JSONL</span><span>CSV</span><span>TSV</span><span>TXT</span><span>Markdown</span>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section id="features" class="section wrap">
+      <p class="kicker reveal">What it does</p>
+      <h2 class="reveal">Built for people who know the work.</h2>
+      <p class="section-lede reveal">No machine-learning background needed. Pick what you want the model to do, and the app guides the rest.</p>
+      <div class="grid">
+        <article class="feature tilt reveal">
+          <div class="feature-icon" aria-hidden="true">◎</div>
+          <h3>Start with a goal</h3>
+          <p>Choose Knowledge Q&amp;A, ticket triage, or a command assistant. The app shows the data each path needs and the steps it takes.</p>
+        </article>
+        <article class="feature tilt reveal">
+          <div class="feature-icon" aria-hidden="true">⇪</div>
+          <h3>Bring your own data</h3>
+          <p>Drop in JSON, JSONL, CSV, TXT, or Markdown. Every problem row is reported with its file and line number, so you can fix it quickly.</p>
+        </article>
+        <article class="feature tilt reveal">
+          <div class="feature-icon" aria-hidden="true">⊘</div>
+          <h3>Duplicates removed, data held back</h3>
+          <p>Repeated records are removed automatically. A share of your data is kept aside to measure the model fairly, and it is never used for training.</p>
+        </article>
+        <article class="feature tilt reveal">
+          <div class="feature-icon" aria-hidden="true">▦</div>
+          <h3>Knows your hardware</h3>
+          <p>The app checks your memory and graphics, then recommends models that will run well on your machine, with clear limits where they apply.</p>
+        </article>
+        <article class="feature tilt reveal">
+          <div class="feature-icon" aria-hidden="true">⌘</div>
+          <h3>Runs with Ollama <span class="tag">Next release</span></h3>
+          <p>Models will run locally through Ollama on CPU or GPU. Point the app at a server on your own network if your team shares one.</p>
+        </article>
+        <article class="feature tilt reveal">
+          <div class="feature-icon" aria-hidden="true">✓</div>
+          <h3>Suggests, never acts alone <span class="tag">Planned</span></h3>
+          <p>The planned command assistant will only suggest. Nothing will run until a person approves it, and every suggestion will be logged.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section id="how" class="section wrap">
+      <p class="kicker reveal">How it works</p>
+      <h2 class="reveal">Four steps, all on your machine.</h2>
+      <div class="how-layout">
+        <ol class="steps" id="steps">
+          <li class="step">
+            <span class="step-n">1</span>
+            <div><h3>Choose a goal</h3><p>Decide what the model should do. The app explains what data that needs.</p></div>
+          </li>
+          <li class="step">
+            <span class="step-n">2</span>
+            <div><h3>Add your data</h3><p>Drop files in. The app checks every row and removes duplicates.</p></div>
+          </li>
+          <li class="step">
+            <span class="step-n">3</span>
+            <div><h3>Check your machine</h3><p>See which models fit your hardware and whether Ollama is ready.</p></div>
+          </li>
+          <li class="step">
+            <span class="step-n">4</span>
+            <div><h3>Prepare and review</h3><p>Review the counts, warnings, and rows that need fixing before anything is trained or used.</p></div>
+          </li>
+        </ol>
+
+        <div class="device-wrap reveal" aria-hidden="true">
+          <div class="device">
+            <div class="device-screen">
+              <div class="mock-nav">Goal</div>
+              <div class="mock-group" id="mock-goals">
+                <div class="mock-row mock-row-on" data-goal="0"><span>Knowledge Q&amp;A</span><span class="check">✓</span></div>
+                <div class="mock-row" data-goal="1"><span>Ticket triage</span><span class="check"></span></div>
+                <div class="mock-row" data-goal="2"><span>Command assistant</span><span class="check"></span></div>
+              </div>
+              <div class="mock-card">
+                <p class="mock-title" id="mock-title">Recommended path</p>
+                <p class="mock-body" id="mock-body">Starts with retrieval over your documents. Fine-tuning is added only when it measurably helps.</p>
+                <div class="mock-bar"><span id="mock-bar-fill"></span></div>
+              </div>
+              <div class="mock-tabs">
+                <span class="mock-tab mock-tab-on">Goal</span><span class="mock-tab">Data</span><span class="mock-tab">Machine</span><span class="mock-tab">Settings</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRIVACY ============ -->
+    <section id="privacy" class="section wrap">
+      <div class="privacy reveal">
+        <svg class="lock" viewBox="0 0 120 120" aria-hidden="true">
+          <rect class="lock-body" x="28" y="54" width="64" height="50" rx="12" />
+          <path class="lock-shackle" d="M40 56 V40 a20 20 0 0 1 40 0 V56" />
+          <circle class="lock-key" cx="60" cy="78" r="6" />
+        </svg>
+        <div>
+          <h2>Private by design.</h2>
+          <ul class="checks">
+            <li>Your files, prepared datasets, and reports stay on your computer.</li>
+            <li>No telemetry, no accounts, and no cloud training.</li>
+            <li>The app's interface makes no outbound network requests. The only connection it makes is to the Ollama address you set, which you can keep on your own machine or network.</li>
+            <li>Open source, so your security team can read exactly what it does.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PLATFORMS ============ -->
+    <section id="platforms" class="section wrap">
+      <p class="kicker reveal">Platforms</p>
+      <h2 class="reveal">Windows and macOS.</h2>
+      <div class="grid grid-2">
+        <article class="feature platform reveal">
+          <h3>Windows</h3>
+          <p>Runs on Windows 10 and later. Planned on-device training will use an NVIDIA graphics card.</p>
+        </article>
+        <article class="feature platform reveal">
+          <h3>macOS</h3>
+          <p>Runs on macOS 11 and later. Apple Silicon is recommended for on-device training once it is released.</p>
+        </article>
+      </div>
+      <p class="fineprint reveal">Features marked “Next release” or “Planned” are in development and are not part of the current version.</p>
+    </section>
+
+    <!-- ============ DOWNLOAD ============ -->
+    <section id="download" class="section wrap download">
+      <div class="download-card reveal">
+        <div class="download-glow" aria-hidden="true"></div>
+        <h2>Get SLM Studio</h2>
+        <p class="section-lede">Free and open source. Download the release for your system, or build it yourself from the source code.</p>
+        <div class="cta-row">
+          <a class="btn btn-large btn-shine" href="#download">Windows installer</a>
+          <a class="btn btn-large btn-tinted" href="#download">macOS disk image</a>
+        </div>
+        <p class="fineprint">Links are added when the first signed release is published.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>© SLM Studio contributors</span>
+      <span>Built with local-first principles.</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{"instruction": "How do I reset my VPN password?", "output": "Open the IT portal, choose 'Security', then 'Reset VPN password'. A verification code is sent to your work email."}
+{"messages": [{"role": "system", "content": "You are a helpful IT support assistant."}, {"role": "user", "content": "My laptop shows error 0x80070005 during update."}, {"role": "assistant", "content": "Error 0x80070005 is an access-denied error. Restart the laptop, then run Windows Update as an administrator. If it persists, raise a ticket under the 'Endpoint' category."}]}
+{"question": "What is the escalation path for a P1 incident?", "answer": "Page the on-call engineer through the incident tool, open a bridge call, and notify the duty manager within 15 minutes."}
+{"instruction": "How do I reset my VPN password?", "output": "Open the IT portal, choose 'Security', then 'Reset VPN password'. A verification code is sent to your work email."}
+{"text": "Invoice approval requires a purchase order number, a cost centre code, and sign-off from the budget owner before payment is released."}
+{"instruction": "", "output": "missing instruction should be rejected"}
+{"messages": [{"role": "user", "content": "hi"}]}
+{"instruction": "Classify this ticket: printer offline", "output": "Category: Hardware. Priority: Low. Route to: Office Support."}
+{"instruction": "Classify this ticket: database down for all customers", "output": "Category: Infrastructure. Priority: P1. Route to: Database On-call."}
