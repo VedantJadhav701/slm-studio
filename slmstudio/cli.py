@@ -34,6 +34,17 @@ from .rag import (
     build_rag_prompt,
     run_evaluation,
 )
+from .train import (
+    TrainingConfig,
+    CancellationHandler,
+    recover_incomplete_job,
+    run_training,
+)
+from .export import (
+    generate_modelfile,
+    write_modelfile,
+    register_model_with_ollama,
+)
 
 MAX_FILE_BYTES = 512 * 1024 * 1024  # 512 MB per file; larger files need splitting first
 MIN_EVAL_FRACTION = 0.02
@@ -183,6 +194,60 @@ def cmd_rag_eval(args: argparse.Namespace) -> Dict[str, Any]:
     return result
 
 
+def cmd_train(args: argparse.Namespace) -> Dict[str, Any]:
+    cfg = TrainingConfig(
+        base_model=args.model,
+        output_dir=args.out,
+        train_file=args.train_file,
+        eval_file=args.eval_file,
+        learning_rate=args.lr,
+        num_epochs=args.epochs,
+        batch_size=args.batch_size,
+        lora_r=args.lora_r,
+        quantization=args.quantization,
+    )
+    res = run_training(cfg, dry_run=args.dry_run)
+    if not res.get("ok"):
+        raise CliError(res.get("error", "Training failed"))
+    return res
+
+
+def cmd_train_status(args: argparse.Namespace) -> Dict[str, Any]:
+    info = recover_incomplete_job(args.job_dir)
+    return {"ok": True, **info}
+
+
+def cmd_train_cancel(args: argparse.Namespace) -> Dict[str, Any]:
+    canceller = CancellationHandler(args.job_dir)
+    canceller.request_cancellation()
+    return {"ok": True, "job_dir": str(Path(args.job_dir).resolve()), "cancellation_requested": True}
+
+
+def cmd_export_modelfile(args: argparse.Namespace) -> Dict[str, Any]:
+    content = generate_modelfile(
+        base_model_or_path=args.base_model,
+        adapter_path=args.adapter_path,
+        system_prompt=args.system,
+    )
+    out_path = Path(args.out)
+    write_modelfile(out_path, content)
+    return {"ok": True, "modelfile_path": str(out_path.resolve()), "content": content}
+
+
+def cmd_export_ollama(args: argparse.Namespace) -> Dict[str, Any]:
+    mf_path = Path(args.modelfile)
+    if not mf_path.exists():
+        content = generate_modelfile(
+            base_model_or_path=args.base_model,
+            adapter_path=args.adapter_path,
+            system_prompt=args.system,
+        )
+        write_modelfile(mf_path, content)
+
+    res = register_model_with_ollama(args.name, mf_path)
+    return res
+
+
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="slmstudio", description="SLM Studio core CLI")
     sub = ap.add_subparsers(dest="command", required=True)
@@ -230,6 +295,42 @@ def build_parser() -> argparse.ArgumentParser:
     re_p.add_argument("--use-ollama", action="store_true")
     re_p.add_argument("--max-records", type=int, default=50)
     re_p.set_defaults(func=cmd_rag_eval)
+
+    tr = sub.add_parser("train", help="run LoRA SFT training sidecar")
+    tr.add_argument("--train-file", required=True)
+    tr.add_argument("--eval-file", required=True)
+    tr.add_argument("--out", required=True)
+    tr.add_argument("--model", default="llama3.2:1b")
+    tr.add_argument("--lr", type=float, default=2e-4)
+    tr.add_argument("--epochs", type=int, default=3)
+    tr.add_argument("--batch-size", type=int, default=2)
+    tr.add_argument("--lora-r", type=int, default=16)
+    tr.add_argument("--quantization", choices=["4bit", "8bit", "none"], default="4bit")
+    tr.add_argument("--dry-run", action="store_true")
+    tr.set_defaults(func=cmd_train)
+
+    ts = sub.add_parser("train-status", help="check training job status")
+    ts.add_argument("--job-dir", required=True)
+    ts.set_defaults(func=cmd_train_status)
+
+    tc = sub.add_parser("train-cancel", help="cancel running training job")
+    tc.add_argument("--job-dir", required=True)
+    tc.set_defaults(func=cmd_train_cancel)
+
+    em = sub.add_parser("export-modelfile", help="generate Ollama Modelfile")
+    em.add_argument("--base-model", default="llama3.2:1b")
+    em.add_argument("--adapter-path", default=None)
+    em.add_argument("--system", default=None)
+    em.add_argument("--out", required=True)
+    em.set_defaults(func=cmd_export_modelfile)
+
+    eo = sub.add_parser("export-ollama", help="register model with Ollama")
+    eo.add_argument("--name", required=True)
+    eo.add_argument("--modelfile", required=True)
+    eo.add_argument("--base-model", default="llama3.2:1b")
+    eo.add_argument("--adapter-path", default=None)
+    eo.add_argument("--system", default=None)
+    eo.set_defaults(func=cmd_export_ollama)
     return ap
 
 
