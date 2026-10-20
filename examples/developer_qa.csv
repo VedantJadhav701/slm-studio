@@ -1,0 +1,5 @@
+question,answer,category
+"How do I run tests locally?","Execute 'npm test' in the app directory and 'python -m unittest discover -s tests' at the repository root.","engineering"
+"What is the CSP policy for the Electron renderer?","The Content Security Policy sets connect-src to 'none', ensuring no unauthorized outbound network connections from the DOM.","security"
+"Where are project run artifacts stored?","Artifacts, including train.jsonl, eval.jsonl, and report.json, are written to run-<timestamp> folders in the projects directory.","architecture"
+"How are file duplicates detected during ingest?","Deduplication compares exact string hashes and normalized whitespace/punctuation fingerprints across rows.","pipeline"
