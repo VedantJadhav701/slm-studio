@@ -18,6 +18,9 @@ const CHANNELS = [
   'rag:index',
   'rag:query',
   'rag:eval',
+  'train:start',
+  'train:status',
+  'train:cancel',
 ];
 
 function invoke(channel, ...args) {
@@ -64,5 +67,10 @@ contextBridge.exposeInMainWorld('slm', {
     index: (opts) => invoke('rag:index', opts),
     query: (opts) => invoke('rag:query', opts),
     eval: (opts) => invoke('rag:eval', opts),
+  },
+  train: {
+    start: (opts) => invoke('train:start', opts),
+    status: (opts) => invoke('train:status', opts),
+    cancel: (opts) => invoke('train:cancel', opts),
   },
 });
