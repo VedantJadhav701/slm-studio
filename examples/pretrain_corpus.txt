@@ -1,0 +1,3 @@
+Continuous pretraining (CPT) allows a base language model to adapt to proprietary vocabulary, internal acronyms, and specialized domain syntax prior to instruction fine-tuning.
+
+In SLM Studio, continuous pretraining text files are ingested, stripped of line-boundary artifacts, and tokenized into sliding context windows. Unlike SFT records which follow prompt-response turns, CPT sequences teach the foundational model underlying language dynamics, technical references, and company documentation.
