@@ -8,6 +8,7 @@
     { id: 'goals', title: 'Goal', icon: 'M12 2l2.9 6.9L22 10l-5.5 4.8L18.2 22 12 18.3 5.8 22l1.7-7.2L2 10l7.1-1.1z' },
     { id: 'data', title: 'Data', icon: 'M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z' },
     { id: 'chat', title: 'Chat', icon: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z' },
+    { id: 'train', title: 'Train', icon: 'M13 3L4 14h7v7l9-11h-7z' },
     { id: 'machine', title: 'Machine', icon: 'M4 5h16v11H4zM2 18h20v2H2z' },
     { id: 'settings', title: 'Settings', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2.2-.6a7 7 0 00-.7-1.7l1.2-2-1.9-1.9-2 1.2a7 7 0 00-1.7-.7L14 3h-4l-.6 2.2a7 7 0 00-1.7.7l-2-1.2-1.9 1.9 1.2 2a7 7 0 00-.7 1.7L3 12l2.2.6a7 7 0 00.7 1.7l-1.2 2 1.9 1.9 2-1.2a7 7 0 001.7.7L10 21h4l.6-2.2a7 7 0 001.7-.7l2 1.2 1.9-1.9-1.2-2a7 7 0 00.7-1.7z' },
   ];
@@ -29,6 +30,9 @@
     ragIndexing: false,
     ragEvalRunning: false,
     ragEvalResult: null,
+    trainingStatus: 'idle',
+    trainingStep: null,
+    trainingSummary: null,
   };
 
   // ---------- DOM helpers (never build HTML from user data) ----------
@@ -108,7 +112,14 @@
     const current = TABS.find((t) => t.id === state.tab) || TABS[0];
     document.getElementById('nav-title').textContent = current.title;
     const content = document.getElementById('content');
-    const views = { goals: viewGoals, data: viewData, chat: viewChat, machine: viewMachine, settings: viewSettings };
+    const views = {
+      goals: viewGoals,
+      data: viewData,
+      chat: viewChat,
+      train: viewTrain,
+      machine: viewMachine,
+      settings: viewSettings,
+    };
     content.replaceChildren(views[state.tab]());
     renderTabbar();
   }
@@ -472,6 +483,101 @@
     } finally {
       state.ragEvalRunning = false;
       render();
+    }
+  }
+
+  // ---------- Train (LoRA SFT) ----------
+
+  function viewTrain() {
+    const isTraining = state.trainingStatus === 'training';
+
+    const paramRows = [
+      row('Base Model', 'Llama 3.2 (1B)'),
+      row('Method', 'LoRA (Low-Rank Adaptation)'),
+      row('Quantization', '4-bit (NF4)'),
+      row('LoRA Rank (r)', '16'),
+      row('Target Modules', 'q, k, v, o projection'),
+      row('Status', state.trainingStatus),
+    ];
+
+    let progressSection = null;
+    if (state.trainingStep) {
+      const step = state.trainingStep;
+      const bar = el('div', { class: 'progress-bar' });
+      bar.style.width = `${step.percent}%`;
+      const container = el('div', { class: 'progress-container' }, bar);
+
+      progressSection = section('Training Progress', null,
+        el('div', { class: 'row' },
+          el('span', { text: `Step ${step.step} of ${step.total_steps} (${step.percent}%)` }),
+          el('span', { class: 'row-caption', text: `Loss: ${step.loss}` })),
+        container,
+        el('div', { class: 'row' },
+          el('span', { class: 'row-caption', text: `Epoch ${step.epoch} • LR ${step.learning_rate}` }),
+          step.eta_seconds ? el('span', { class: 'row-caption', text: `ETA: ${Math.round(step.eta_seconds)}s` }) : null)
+      );
+    }
+
+    let summarySection = null;
+    if (state.trainingSummary) {
+      summarySection = section('Training Complete', 'Adapter checkpoint saved to project directory.',
+        row('Final Loss', String(state.trainingSummary.final_loss)),
+        row('Duration', `${state.trainingSummary.total_time_seconds}s`),
+        row('Adapter Path', state.trainingSummary.adapter_dir)
+      );
+    }
+
+    const actionButtons = el('div', { class: 'footer-actions' },
+      isTraining
+        ? button('Cancel Training', onCancelTrain, 'destructive')
+        : button('Start LoRA Training', () => onStartTrain(false), 'filled'),
+      !isTraining
+        ? button('Dry Run (Simulate)', () => onStartTrain(true), 'tinted')
+        : null
+    );
+
+    return el('div', { class: 'page' },
+      largeTitle('Train', 'Fine-tune small language models on-prem with LoRA and PEFT.'),
+      section('Configuration', 'Optimized for local consumer and enterprise hardware.', ...paramRows),
+      progressSection,
+      summarySection,
+      actionButtons
+    );
+  }
+
+  async function onStartTrain(dryRun) {
+    state.trainingStatus = 'training';
+    state.trainingStep = { step: 0, total_steps: 100, percent: 0, loss: 2.5, epoch: 0, learning_rate: 0.0002 };
+    state.trainingSummary = null;
+    render();
+
+    try {
+      const res = await unwrap(api.train.start({ dryRun }));
+      if (res.ok) {
+        state.trainingStatus = 'completed';
+        state.trainingSummary = res.summary;
+        state.trainingStep = { step: 100, total_steps: 100, percent: 100, loss: res.summary?.final_loss || 0.4, epoch: 3, learning_rate: 0 };
+        toast('Training completed successfully.', 'success');
+      } else {
+        state.trainingStatus = res.cancelled ? 'cancelled' : 'error';
+        toast(res.error || 'Training ended.', res.cancelled ? 'info' : 'error');
+      }
+    } catch (err) {
+      state.trainingStatus = 'error';
+      toast(err.message, 'error');
+    } finally {
+      render();
+    }
+  }
+
+  async function onCancelTrain() {
+    try {
+      await unwrap(api.train.cancel());
+      state.trainingStatus = 'cancelled';
+      toast('Cancellation requested.', 'info');
+      render();
+    } catch (err) {
+      toast(err.message, 'error');
     }
   }
 
