@@ -39,14 +39,15 @@ AGENT_PROMPT.md          Brief for the coding agent that continues the build
 | Goal selection, Machine screen, Settings | Built and tested |
 | Ollama status check | Built and tested against a local test server |
 | Chat with a model through Ollama, RAG over documents | Built and tested (milestone M2) |
-| LoRA fine-tuning (SFT) | **Not built** (milestone M3) |
-| Export to Ollama (GGUF, quantisation) | **Not built** (milestone M4) |
-| Command assistant with approvals | **Not built** (later milestone) |
+| LoRA fine-tuning sidecar (SFT) | Built and tested (milestone M3) |
+| Export to Ollama (GGUF, quantisation, Modelfile) | Built and tested (milestone M4) |
+| Multi-model comparative evaluation (Base vs RAG vs LoRA) | Built and tested (milestone M4) |
+| Suggest-only agent with human approval and audit log | Built and tested (v1.1 milestone) |
 | Bundled Python runtime for installers | Built and tested (embeddable Windows & relocatable macOS lookup) |
 | Application icons, code signing, notarisation | Icons created; signing hooks ready |
 
-Tests: `cd app && npm test` runs 63 Node tests, including real Python core and chat tests.
-`python3 -m unittest discover -s tests` runs the 45 Python tests.
+Tests: `cd app && npm test` runs 67 Node tests.
+`python3 -m unittest discover -s tests` runs 55 Python tests.
 
 ## Running it (development)
 
