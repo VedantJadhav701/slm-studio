@@ -5,12 +5,12 @@
   const { formatBytes, formatGb, formatCount, GOALS } = window.SLMFormat;
 
   const TABS = [
-    { id: 'goals', title: 'Goal', icon: 'M12 2l2.9 6.9L22 10l-5.5 4.8L18.2 22 12 18.3 5.8 22l1.7-7.2L2 10l7.1-1.1z' },
-    { id: 'data', title: 'Data', icon: 'M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z' },
-    { id: 'chat', title: 'Chat', icon: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z' },
-    { id: 'train', title: 'Train', icon: 'M13 3L4 14h7v7l9-11h-7z' },
-    { id: 'machine', title: 'Machine', icon: 'M4 5h16v11H4zM2 18h20v2H2z' },
-    { id: 'settings', title: 'Settings', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2.2-.6a7 7 0 00-.7-1.7l1.2-2-1.9-1.9-2 1.2a7 7 0 00-1.7-.7L14 3h-4l-.6 2.2a7 7 0 00-1.7.7l-2-1.2-1.9 1.9 1.2 2a7 7 0 00-.7 1.7L3 12l2.2.6a7 7 0 00.7 1.7l-1.2 2 1.9 1.9 2-1.2a7 7 0 001.7.7L10 21h4l.6-2.2a7 7 0 001.7-.7l2 1.2 1.9-1.9-1.2-2a7 7 0 00.7-1.7z' },
+    { id: 'goals', title: 'Goal', shortcut: '⌘1', icon: 'M12 2l2.9 6.9L22 10l-5.5 4.8L18.2 22 12 18.3 5.8 22l1.7-7.2L2 10l7.1-1.1z' },
+    { id: 'data', title: 'Data', shortcut: '⌘2', icon: 'M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z' },
+    { id: 'chat', title: 'Chat & RAG', shortcut: '⌘3', icon: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z' },
+    { id: 'train', title: 'Train LoRA', shortcut: '⌘4', icon: 'M13 3L4 14h7v7l9-11h-7z' },
+    { id: 'machine', title: 'Machine', shortcut: '⌘5', icon: 'M4 5h16v11H4zM2 18h20v2H2z' },
+    { id: 'settings', title: 'Settings', shortcut: '⌘6', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l-2.2-.6a7 7 0 00-.7-1.7l1.2-2-1.9-1.9-2 1.2a7 7 0 00-1.7-.7L14 3h-4l-.6 2.2a7 7 0 00-1.7.7l-2-1.2-1.9 1.9 1.2 2a7 7 0 00-.7 1.7L3 12l2.2.6a7 7 0 00.7 1.7l-1.2 2 1.9 1.9 2-1.2a7 7 0 001.7.7L10 21h4l.6-2.2a7 7 0 001.7-.7l2 1.2 1.9-1.9-1.2-2a7 7 0 00.7-1.7z' },
   ];
 
   const state = {
@@ -102,17 +102,21 @@
     }
   }
 
-  /** Update the header status chip to reflect Ollama / system state */
+  /** Update the status indicators to reflect Ollama / system state */
   function updateStatusChip(online) {
     const dot = document.getElementById('system-status-dot');
     const text = document.getElementById('system-status-text');
-    if (!dot || !text) return;
-    if (online) {
-      dot.className = 'status-dot status-dot-online';
-      text.textContent = 'Ollama Online';
-    } else {
-      dot.className = 'status-dot status-dot-offline';
-      text.textContent = 'Ollama Offline';
+    const quickText = document.getElementById('quick-hw-text');
+    if (dot && text) {
+      if (online) {
+        dot.className = 'status-dot';
+        text.textContent = 'Ollama Connected';
+        if (quickText) quickText.textContent = 'Ollama & Core Active';
+      } else {
+        dot.className = 'status-dot status-dot-offline';
+        text.textContent = 'Ollama Offline';
+        if (quickText) quickText.textContent = 'Core Ready (Ollama Offline)';
+      }
     }
   }
 
@@ -125,7 +129,11 @@
       role: 'tab',
       'aria-selected': state.tab === t.id ? 'true' : 'false',
       onclick: () => go(t.id),
-    }, svgIcon(t.icon), el('span', { text: t.title }))));
+    },
+      svgIcon(t.icon),
+      el('span', { text: t.title }),
+      t.shortcut ? el('span', { class: 'tab-shortcut', text: t.shortcut }) : null
+    )));
   }
 
   function go(tab) {
@@ -202,7 +210,7 @@
 
   function viewGoals() {
     const goalEntries = Object.entries(GOALS);
-    const rows = goalEntries.map(([id, g]) => {
+    const cards = goalEntries.map(([id, g]) => {
       const selected = state.settings.goal === id;
       const iconPath = GOAL_ICONS[id] || GOAL_ICONS.qa;
       const badgeColor = GOAL_COLORS[id] || 'badge-blue';
@@ -223,15 +231,15 @@
     });
     const current = GOALS[state.settings.goal];
     return el('div', { class: 'page' },
-      largeTitle('Choose a goal', 'What should this model do for your team?'),
-      section('Use case', 'You can change this at any time.', ...rows),
-      section('What this path involves', null,
+      largeTitle('Choose an Objective', 'Fine-tune or ground a small language model on your own hardware.'),
+      el('div', { class: 'goals-grid' }, ...cards),
+      section('Architecture & Pathway', null,
         el('div', { class: 'card' },
-          el('p', { class: 'card-title', text: 'Data you need' }),
+          el('p', { class: 'card-title', text: 'Dataset Requirements' }),
           el('p', { class: 'card-body', text: current.needs }),
-          el('p', { class: 'card-title', text: 'How it works' }),
+          el('p', { class: 'card-title', text: 'Engine Execution Pipeline' }),
           el('p', { class: 'card-body', text: current.path }))),
-      el('div', { class: 'footer-actions' }, button('Continue to Data', () => go('data'))));
+      el('div', { class: 'footer-actions' }, button('Continue to Data →', () => go('data'), 'filled btn-wide')));
   }
 
   async function chooseGoal(id) {
@@ -551,12 +559,12 @@
     const isTraining = state.trainingStatus === 'training';
 
     const paramRows = [
-      row('Base Model', 'Llama 3.2 (1B)'),
-      row('Method', 'LoRA (Low-Rank Adaptation)'),
-      row('Quantization', '4-bit (NF4)'),
-      row('LoRA Rank (r)', '16'),
-      row('Target Modules', 'q, k, v, o projection'),
-      row('Status', state.trainingStatus),
+      row('Base Model', 'Llama 3.2 (1B) • Instruct'),
+      row('Method', 'LoRA (Low-Rank Parameter-Efficient Adaptation)'),
+      row('Quantization', '4-bit NormalFloat (NF4) via bitsandbytes'),
+      row('LoRA Rank & Alpha', 'r = 16, alpha = 32 (Dropout: 0.05)'),
+      row('Target Projection Modules', 'q_proj, k_proj, v_proj, o_proj'),
+      row('Engine Execution Status', state.trainingStatus.toUpperCase()),
     ];
 
     let progressSection = null;
@@ -566,38 +574,38 @@
       bar.style.width = `${step.percent}%`;
       const container = el('div', { class: 'progress-container' }, bar);
 
-      progressSection = section('Training Progress', null,
+      progressSection = section('Live Fine-Tuning Telemetry', null,
         el('div', { class: 'row' },
-          el('span', { text: `Step ${step.step} of ${step.total_steps} (${step.percent}%)` }),
-          el('span', { class: 'row-caption', text: `Loss: ${step.loss}` })),
+          el('span', { class: 'row-title', text: `Step ${step.step} of ${step.total_steps} (${step.percent}%)` }),
+          el('span', { class: 'format-tag', text: `Loss: ${step.loss}` })),
         container,
         el('div', { class: 'row' },
-          el('span', { class: 'row-caption', text: `Epoch ${step.epoch} • LR ${step.learning_rate}` }),
-          step.eta_seconds ? el('span', { class: 'row-caption', text: `ETA: ${Math.round(step.eta_seconds)}s` }) : null)
+          el('span', { class: 'row-caption', text: `Epoch ${step.epoch} • Learning Rate: ${step.learning_rate}` }),
+          step.eta_seconds ? el('span', { class: 'row-caption', text: `ETA: ${Math.round(step.eta_seconds)}s remaining` }) : null)
       );
     }
 
     let summarySection = null;
     if (state.trainingSummary) {
-      summarySection = section('Training Complete', 'Adapter checkpoint saved to project directory.',
-        row('Final Loss', String(state.trainingSummary.final_loss)),
-        row('Duration', `${state.trainingSummary.total_time_seconds}s`),
-        row('Adapter Path', state.trainingSummary.adapter_dir)
+      summarySection = section('Training Run Artifacts', 'LoRA adapter checkpoint saved to your project directory.',
+        row('Final Evaluated Loss', String(state.trainingSummary.final_loss)),
+        row('Total Elapsed Duration', `${state.trainingSummary.total_time_seconds}s`),
+        row('Adapter Checkpoint Path', state.trainingSummary.adapter_dir)
       );
     }
 
     const actionButtons = el('div', { class: 'footer-actions' },
       isTraining
-        ? button('Cancel Training', onCancelTrain, 'destructive')
-        : button('Start LoRA Training', () => onStartTrain(false), 'filled'),
+        ? button('Cancel Training Run', onCancelTrain, 'destructive')
+        : button('Start LoRA Fine-Tuning →', () => onStartTrain(false), 'filled'),
       !isTraining
         ? button('Dry Run (Simulate)', () => onStartTrain(true), 'tinted')
         : null
     );
 
     return el('div', { class: 'page' },
-      largeTitle('Train', 'Fine-tune small language models on-prem with LoRA and PEFT.'),
-      section('Configuration', 'Optimized for local consumer and enterprise hardware.', ...paramRows),
+      largeTitle('Train Model', 'Fine-tune small language models on-premise with LoRA and PEFT without data leakage.'),
+      section('Hyperparameter Configuration', 'Optimized for local consumer GPUs and unified memory.', ...paramRows),
       progressSection,
       summarySection,
       actionButtons
@@ -648,41 +656,45 @@
     const profile = hw ? hw.hardware : null;
 
     const hardwareRows = profile ? [
-      row('System', profile.os || 'Unknown'),
-      row('Processor', profile.cpu_model || 'Not detected'),
-      row('Cores', profile.cpu_cores ? String(profile.cpu_cores) : 'Not detected'),
-      row('Memory', formatGb(profile.ram_gb)),
-      row('Graphics', profile.gpu_name || 'None detected'),
-      row('Graphics memory', formatGb(profile.gpu_vram_gb)),
+      row('Operating System', profile.os || 'Unknown'),
+      row('Processor Architecture', profile.cpu_model || 'Not detected'),
+      row('CPU Compute Cores', profile.cpu_cores ? `${profile.cpu_cores} physical / logical cores` : 'Not detected'),
+      row('System Unified RAM', formatGb(profile.ram_gb)),
+      row('Dedicated Graphics Accelerator', profile.gpu_name || 'None detected (CPU execution fallback)'),
+      row('Available Graphics Memory (VRAM)', formatGb(profile.gpu_vram_gb)),
     ] : [];
 
     const ollamaRows = state.ollama ? [
-      row('Status', state.ollama.running ? 'Running' : 'Not running'),
-      row('Address', state.settings.ollamaUrl),
-      row('Models', state.ollama.running
-        ? (state.ollama.models.length ? String(state.ollama.models.length) : 'None installed')
+      row('Ollama Daemon Status', state.ollama.running ? 'Connected & Listening' : 'Daemon Offline'),
+      row('API Endpoint URL', state.settings.ollamaUrl),
+      row('Locally Cached Models', state.ollama.running
+        ? (state.ollama.models.length ? `${state.ollama.models.length} model(s) available` : 'None installed')
         : '—'),
     ] : [];
 
-    const modelRows = state.ollama && state.ollama.running && state.ollama.models.length
-      ? state.ollama.models.map((m) => el('div', { class: 'row' }, el('span', { class: 'mono', text: m })))
-      : [];
+    const modelTags = state.ollama && state.ollama.running && state.ollama.models.length
+      ? el('div', { class: 'row row-wrap' },
+          ...state.ollama.models.map((m) => el('span', { class: 'format-tag', text: m })))
+      : null;
 
     return el('div', { class: 'page' },
-      largeTitle('This machine', 'What this computer can run, and whether Ollama is ready.'),
+      largeTitle('Hardware & Environment', 'Local compute diagnostics, accelerator capability, and Ollama server status.'),
       state.hardwareError ? el('div', { class: 'notice notice-error', text: state.hardwareError }) : null,
-      hardwareRows.length ? section('Hardware', null, ...hardwareRows) : null,
-      rec ? section('Recommendation', null,
+      rec ? section('Compute Recommendation', null,
         el('div', { class: 'card' },
-          el('p', { class: 'card-title', text: rec.recommended ? `Recommended: ${rec.recommended}` : 'No model recommended' }),
+          el('div', { class: 'citation-head' },
+            el('span', { class: 'format-tag', text: 'OPTIMAL ARCHITECTURE' }),
+            el('span', { class: 'card-title', text: rec.recommended ? rec.recommended : 'Standard CPU Baseline' })
+          ),
           el('p', { class: 'card-body', text: rec.message }),
           rec.usable_memory_gb !== undefined
-            ? el('p', { class: 'card-caption', text: `About ${formatGb(rec.usable_memory_gb)} is available for models.` })
+            ? el('p', { class: 'card-caption', text: `Allocatable model memory: ~${formatGb(rec.usable_memory_gb)} available for weights & KV cache.` })
             : null)) : null,
-      state.python ? section('Python', state.python.found ? null : 'Install Python 3.10 or newer, then press Refresh.',
-        row('Core engine', state.python.found ? 'Ready' : 'Not found')) : null,
-      state.ollama ? section('Ollama', state.ollama.running ? null : 'Start Ollama on this computer, then press Refresh.', ...ollamaRows, ...modelRows) : null,
-      el('div', { class: 'footer-actions' }, button('Refresh', refreshMachine, 'tinted')));
+      hardwareRows.length ? section('Hardware Telemetry', 'Detected by local hardware profiler.', ...hardwareRows) : null,
+      state.python ? section('Core Python Runtime', state.python.found ? 'Local isolated sidecar execution environment.' : 'Install Python 3.10 or newer, then press Refresh.',
+        row('Core Engine Status', state.python.found ? 'Ready (Python isolated runtime)' : 'Not found')) : null,
+      state.ollama ? section('Ollama Server', state.ollama.running ? 'Local inference server for fast on-device generation.' : 'Start Ollama on this computer, then press Refresh.', ...ollamaRows, modelTags || null) : null,
+      el('div', { class: 'footer-actions' }, button('Refresh Telemetry ↻', refreshMachine, 'tinted')));
   }
 
   async function refreshMachine() {
@@ -713,7 +725,7 @@
       'aria-label': 'Ollama address',
     });
     const frac = Math.round(state.settings.evalFraction * 100);
-    const fracLabel = el('span', { class: 'row-value', id: 'frac-label', text: `${frac}%` });
+    const fracLabel = el('span', { class: 'format-tag', id: 'frac-label', text: `${frac}% Held-out` });
     const slider = el('input', {
       class: 'slider',
       id: 'eval-fraction',
@@ -723,21 +735,21 @@
       step: '1',
       value: String(frac),
       'aria-label': 'Share of data kept for evaluation',
-      oninput: (e) => { fracLabel.textContent = `${e.target.value}%`; },
+      oninput: (e) => { fracLabel.textContent = `${e.target.value}% Held-out`; },
     });
 
     return el('div', { class: 'page' },
-      largeTitle('Settings', null),
-      section('Ollama', 'The address of the Ollama server that runs your models. Keep it on this machine or on your own network.',
-        el('div', { class: 'row row-field' }, el('span', { class: 'row-label', text: 'Address' }), urlInput)),
-      section('Evaluation', 'Part of your data is held back to measure the model fairly. It is never used for training.',
+      largeTitle('Workbench Settings', 'Configure local inference endpoints, test dataset splits, and project persistence directories.'),
+      section('Ollama Inference Server', 'The address of the local or on-premise Ollama server. Keep it on 127.0.0.1 or your private corporate network.',
+        el('div', { class: 'row row-field' }, el('span', { class: 'row-label', text: 'API Endpoint Host' }), urlInput)),
+      section('Evaluation Dataset Partitioning', 'Reserved validation fraction held back to benchmark accuracy and prevent data leakage.',
         el('div', { class: 'row row-field' },
-          el('span', { class: 'row-label', text: 'Held-out share' }), fracLabel),
+          el('span', { class: 'row-label', text: 'Held-out Evaluation Split' }), fracLabel),
         el('div', { class: 'row row-field' }, slider)),
-      section('Project folder', 'Prepared data and reports are saved here.',
-        row('Location', state.settings.projectsDir, button('Open', () => openFolder(state.settings.projectsDir), 'plain'))),
+      section('Project Workspace Directory', 'Prepared datasets, tokenized caches, evaluation benchmarks, and LoRA adapters are saved here.',
+        row('Local Storage Location', state.settings.projectsDir, button('Reveal Folder', () => openFolder(state.settings.projectsDir), 'plain'))),
       state.settingsNotice ? el('div', { class: 'notice notice-success', text: state.settingsNotice }) : null,
-      el('div', { class: 'footer-actions' }, button('Save changes', () => saveSettings(urlInput.value, Number(slider.value) / 100))));
+      el('div', { class: 'footer-actions' }, button('Save Settings', () => saveSettings(urlInput.value, Number(slider.value) / 100), 'filled')));
   }
 
   async function saveSettings(url, fraction) {

@@ -10,23 +10,59 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="navbar" id="navbar">
-      <div class="navbar-left">
-        <div class="navbar-title">
-          <img class="app-mark" src="assets/mark.svg" alt="" width="22" height="22" />
-          <span id="nav-title">Goal</span>
+  <div id="app" class="app-layout">
+    <!-- Modern macOS/iOS Frosted Glass Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-mark-wrap">
+            <img class="app-mark" src="assets/mark.svg" alt="SLM Studio" width="28" height="28" />
+          </div>
+          <div class="brand-info">
+            <span class="brand-title">SLM Studio</span>
+            <span class="brand-badge">Local • Private</span>
+          </div>
         </div>
       </div>
-      <div class="navbar-right">
-        <div class="status-chip" id="system-status-chip">
-          <span class="status-dot" id="system-status-dot"></span>
-          <span id="system-status-text">Local Core Ready</span>
+
+      <div class="sidebar-nav-container">
+        <div class="sidebar-section-label">WORKBENCH</div>
+        <nav class="sidebar-nav" id="tabbar" role="tablist" aria-label="Workbench Sections"></nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="status-card" id="system-status-chip">
+          <div class="status-header">
+            <span class="status-dot" id="system-status-dot"></span>
+            <span class="status-name" id="system-status-text">Local Core Ready</span>
+          </div>
+          <div class="status-sub" id="system-status-sub">100% On-Device • Air-Gapped</div>
         </div>
       </div>
-    </header>
-    <main class="content" id="content" tabindex="-1"></main>
-    <nav class="tabbar" id="tabbar" role="tablist" aria-label="Sections"></nav>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+      <header class="topbar" id="navbar">
+        <div class="topbar-left">
+          <div class="breadcrumbs">
+            <span class="breadcrumb-root">SLM Studio</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-active" id="nav-title">Goal</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="quick-status" id="quick-status-chip">
+            <span class="quick-status-dot"></span>
+            <span class="quick-status-text" id="quick-hw-text">Local Engine Active</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-scroll" id="content" tabindex="-1"></main>
+    </div>
+
+    <!-- Toast Notifications -->
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   </div>
   <script src="format.js"></script>
